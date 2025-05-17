@@ -1,0 +1,94 @@
+<?php
+$host = "sql306.infinityfree.com";
+$user = "epiz_34567890";
+$pass = "sunly123";
+$db   = "epiz_34567890_crud_db";
+
+$conn = mysqli_connect($host, $user, $pass, $db);
+if (!$conn) {
+    die("Connection failed: " . mysqli_connect_error());
+}
+?>
+
+//create.php
+<?php include 'config.php'; ?>
+<h2>Add User</h2>
+<form method="POST">
+  Name: <input type="text" name="name" required><br><br>
+  Email: <input type="email" name="email" required><br><br>
+  <button type="submit">Add</button>
+</form>
+
+<?php
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+  $name = $_POST['name'];
+  $email = $_POST['email'];
+  $sql = "INSERT INTO users (name, email) VALUES ('$name', '$email')";
+  if (mysqli_query($conn, $sql)) {
+    echo "<p>New user added successfully!</p>";
+  } else {
+    echo "Error: " . mysqli_error($conn);
+  }
+}
+?>
+<a href="read.php">Back to List</a>
+
+//read.php
+<?php include 'config.php'; ?>
+<h2>User List</h2>
+<a href="create.php">Add New User</a>
+<table border="1" cellpadding="10" cellspacing="0">
+<tr><th>ID</th><th>Name</th><th>Email</th><th>Action</th></tr>
+<?php
+$result = mysqli_query($conn, "SELECT * FROM users");
+while ($row = mysqli_fetch_assoc($result)) {
+  echo "<tr>
+    <td>{$row['id']}</td>
+    <td>{$row['name']}</td>
+    <td>{$row['email']}</td>
+    <td>
+      <a href='update.php?id={$row['id']}'>Edit</a> |
+      <a href='delete.php?id={$row['id']}' onclick=\"return confirm('Delete this user?');\">Delete</a>
+    </td>
+  </tr>";
+}
+?>
+</table>
+
+//update.php
+<?php include 'config.php'; ?>
+<?php
+$id = $_GET['id'];
+$result = mysqli_query($conn, "SELECT * FROM users WHERE id=$id");
+$data = mysqli_fetch_assoc($result);
+?>
+
+<h2>Update User</h2>
+<form method="POST">
+  Name: <input type="text" name="name" value="<?= $data['name'] ?>" required><br><br>
+  Email: <input type="email" name="email" value="<?= $data['email'] ?>" required><br><br>
+  <button type="submit">Update</button>
+</form>
+
+<?php
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+  $name = $_POST['name'];
+  $email = $_POST['email'];
+  mysqli_query($conn, "UPDATE users SET name='$name', email='$email' WHERE id=$id");
+  header("Location: read.php");
+}
+?>
+//delete.php
+<?php
+include 'config.php';
+$id = $_GET['id'];
+mysqli_query($conn, "DELETE FROM users WHERE id=$id");
+header("Location: read.php");
+?>
+
+//SQL
+CREATE TABLE users (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  name VARCHAR(100) NOT NULL,
+  email VARCHAR(100) NOT NULL
+);
